@@ -1,6 +1,6 @@
-import { run } from './../03-utils';
-import { catchError, mergeMap, concatMap, delay, exhaustMap, switchMap, take, filter, concatMapTo, mergeMapTo, switchMapTo } from 'rxjs/operators';
-import { fromEvent, range, interval, of, from, Observable, NEVER, concat, } from 'rxjs';
+import { addItem, run } from './../03-utils';
+import { catchError, mergeMap, concatMap, delay, exhaustMap, switchMap, take, filter, concatMapTo, mergeMapTo, switchMapTo, tap, map, mapTo } from 'rxjs/operators';
+import { fromEvent, range, interval, of, from, Observable, NEVER, concat, timer, } from 'rxjs';
 import { fromFetch } from 'rxjs/fetch';
 
 // Task 1. concatMap()
@@ -124,6 +124,45 @@ import { fromFetch } from 'rxjs/fetch';
     const stream$ = clicks$
         .pipe(
             switchMapTo(inner)
+        );
+
+    //run(stream$);
+})();
+
+// Custom Task1. switchMap
+// реализуйте поиск, используя текстовое поле 'text-field'. На каждый ввод нового символа
+// необходимо запускать новый запрос за поиском и предыдущий отменять.
+(function customTask1() {
+
+    function emulateHttpCall(text: string): Observable<any> {
+        console.log("emulateHttpCall start");
+        return of({}).pipe(delay(1000), mapTo(text), tap(() => console.log("emulateHttpCall end")));
+    }
+
+    const input: any = document.getElementById('text-field');
+    const clicks$ = fromEvent(input, 'keyup');
+    const stream$ = clicks$
+        .pipe(
+            switchMap(() => emulateHttpCall(input.value))
+        );
+
+    //run(stream$);
+})();
+
+// Custom Task2. exhaustMap
+// Каждые 0.5 секунды необходимо отправлять запрос и дожидаться его завершения и только после его завершения
+// отправлять следующий звапрос. Все тики, которые произошли во время "работы" запроса - пропускать.
+(function customTask2() {
+
+    function emulateHttpCall(text: string): Observable<any> {
+        console.log("emulateHttpCall start");
+        return of({}).pipe(delay(1500), mapTo(text), tap(() => console.log("emulateHttpCall end")));
+    }
+
+    const stream$ = interval(500)
+        .pipe(
+            tap(i => addItem(`interval ${i}`, { color: "red" })),
+            exhaustMap(() => emulateHttpCall("http request"))
         );
 
     //run(stream$);
